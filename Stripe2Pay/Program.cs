@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Pagination.Extentions;
-using Pagination.Models;
-using Pagination.Services;
-using Pagination.Services.Contracts;
+using Stripe;
+using Stripe2Pay.Services;
+using Stripe2Pay.Services.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,19 +12,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// services
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+builder.Services.AddScoped<IStripeService, StripeService>();
+
 //CORS
+string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevCORS-Policy", builder => {
-        //builder.WithOrigins("http://localhost:800").AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        //builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");
-        //builder.SetIsOriginAllowed(origin => true);
+    options.AddPolicy("devPolicyCORS", policy => {
+        //policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     });
 });
-
-// register services
-builder.Services.AppServiceCollection(builder.Configuration);
 
 var app = builder.Build();
 
@@ -36,6 +34,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("devPolicyCORS");
 
 app.UseHttpsRedirection();
 

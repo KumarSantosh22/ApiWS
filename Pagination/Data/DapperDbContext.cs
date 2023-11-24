@@ -15,7 +15,6 @@ namespace Pagination.Data
         public IDbConnection CreateConnection()
         {
             return new NpgsqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
         }
     }
 }
